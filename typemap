@@ -1,0 +1,15 @@
+TYPEMAP
+PerlJsonnetVm *  T_JSONNETVM
+
+INPUT
+T_JSONNETVM
+    if (sv_isobject($arg) && sv_derived_from($arg, "JSON::Jsonnet")) {
+        $var = INT2PTR(PerlJsonnetVm *, SvIV(SvRV($arg)));
+    }
+    else {
+        croak(\"$var is not of type JSON::Jsonnet\");
+    }
+
+OUTPUT
+T_JSONNETVM
+    sv_setref_pv($arg, "JSON::Jsonnet", (void*)$var);

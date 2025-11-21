@@ -1,0 +1,7 @@
+Revision history for Perl extension JSON::Jsonnet.
+
+0.01  2025-11-21
+    - Initial CPAN release.
+    - XS bindings to libjsonnet:
+      evaluate_snippet/file, multi/stream outputs
+      import_callback, native_callback
