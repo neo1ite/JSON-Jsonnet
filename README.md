@@ -242,4 +242,4 @@ under the same terms as Perl itself.
 
 ## Author
 
-Sergey Kovalev [info@neolite.ru](mailto:info@neolite.ru)
+Sergey Kovalev info@neolite.ru
