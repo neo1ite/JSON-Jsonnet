@@ -248,7 +248,9 @@ make clean
 make
 make test
 ```
-or also can help:
+
+# also can help:
+
 ```bash
 cp libjsonnet.so.0 /usr/lib64/
 cp include/libjsonnet.h /usr/include/
