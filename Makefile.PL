@@ -22,7 +22,7 @@ my %CHECKLIB_ARGS;
 if ($prefix) {
     # Explicit prefix
     $inc_flags = "-I$prefix/include";
-    $lib_flags = "-L$prefix/lib $lib_flags";
+    $lib_flags = "-L$prefix $lib_flags";
 
     %CHECKLIB_ARGS = (
         header => 'libjsonnet.h',
@@ -67,7 +67,10 @@ check_lib_or_exit(%CHECKLIB_ARGS);
 my $have_required_version = check_lib(
     %CHECKLIB_ARGS,
     function => <<'END_JSONNET_VERSION_CHECK',
-        /* If the binary and header don't match, we consider it an error */
+	#include <libjsonnet.h>
+	#include <stdio.h>
+	#include <string.h>
+	/* If the binary and header don't match, we consider it an error */
         if (strcmp(jsonnet_version(), LIB_JSONNET_VERSION) != 0) {
             return 1;
         }
@@ -76,11 +79,17 @@ my $have_required_version = check_lib(
         int major = 0, minor = 0, patch = 0;
 
         /* expected format "X.Y[.Z]" */
-        if (sscanf(v, "v%d.%d.%d", &major, &minor, &patch) < 3) {
-            /* couldn't parse - we think the version is not suitable */
-            return 1;
-        }
+	int matched = sscanf(v, "v%d.%d.%d", &major, &minor, &patch);
+	if (matched < 2) {  
+  		matched = sscanf(v, "%d.%d.%d", &major, &minor, &patch);
+    		if (matched < 2) {
+        		return 1;
+    		}
+	}
 
+	if (matched == 2) {
+    		patch = 0;
+	}
         /* Requires >= 0.21.x:
          * - anything with major > 0 is automatically ok (1.0.0, 2.3.4, ...)
          * - or 0.minor, where minor >= 21
@@ -89,12 +98,10 @@ my $have_required_version = check_lib(
             return 0; /* OK */
         }
 
-        /* version is too old */
-        return 1;
 END_JSONNET_VERSION_CHECK
 );
 
-unless ($have_required_version) {
+unless ($have_required_version != 1) {
     warn <<"END_MSG";
 *** Jsonnet::XS: found libjsonnet, but its version is too old.
 *** Required libjsonnet version: >= $JSONNET_MIN_VERSION
@@ -115,6 +122,9 @@ WriteMakefile(
 
     LIBS               => [ $lib_flags ],
     INC                => $inc_flags,
+	($^O eq 'darwin' ? (dynamic_lib => {
+        OTHERLDFLAGS => '-Wl,-rpath,/usr/local/lib'
+    }) : ()),
     XS                 => { 'Jsonnet.xs' => 'Jsonnet.c' },
 
     TYPEMAPS           => [ 'typemap' ],
